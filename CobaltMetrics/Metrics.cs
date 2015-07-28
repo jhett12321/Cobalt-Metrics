@@ -1,5 +1,4 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System;
 using System.Xml;
 using System.Xml.Linq;
@@ -23,10 +22,6 @@ namespace CobaltMetrics
         /// </summary>
         public static void StartMetrics()
         {
-            Vector3 playerPos = new Vector3(1f, 1f, 1f);
-
-            //CobaltMetrics.DataTypes.CMetricVector.Create("playerPos", playerPos);
-
             if(running)
             {
                 throw new InvalidOperationException("The metrics system is already running!");
