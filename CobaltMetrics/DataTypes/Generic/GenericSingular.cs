@@ -29,7 +29,7 @@ namespace CobaltMetrics.DataTypes.Generic
             this.data = value;
 
             TimeSpan t = DateTime.UtcNow - new DateTime(1970, 1, 1);
-            this.timestamp = (int)t.TotalMilliseconds;
+            this.timestamp = (long)t.TotalMilliseconds;
 
             Metrics.AddData(this);
         }
