@@ -9,9 +9,11 @@ namespace CobaltMetrics.DataTypes.Generic
     /// </summary>
     public class GenericList : IGenericData
     {
+        private const DataType dataType = DataType.ARRAY;
+
         //Generic Data  
         private string key;
-        private int timestamp;
+        private long timestamp;
 
         //List Data
         private List<string> data = new List<string>();
@@ -29,13 +31,13 @@ namespace CobaltMetrics.DataTypes.Generic
             data.AddRange(value);
 
             TimeSpan t = DateTime.UtcNow - new DateTime(1970, 1, 1);
-            this.timestamp = (int)t.TotalSeconds;
+            this.timestamp = (int)t.TotalMilliseconds;
 
             Metrics.AddData(this);
         }
 
         //Interface
-        public string GetDBDataKey()
+        public string GetDataKey()
         {
             return key;
         }
@@ -50,7 +52,12 @@ namespace CobaltMetrics.DataTypes.Generic
             return null;
         }
 
-        public int GetTimestamp()
+        public DataType GetDataType()
+        {
+            return dataType;
+        }
+
+        public long GetTimestamp()
         {
             return timestamp;
         }

@@ -1,6 +1,6 @@
 ﻿namespace CobaltMetrics.DataTypes
 {
-    enum DataType
+    public enum DataType
     {
         SINGLE,
         ARRAY
