@@ -4,14 +4,13 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{3DA71560-2F4B-4227-A7DD-A6F1719225B1}</ProjectGuid>
+    <ProjectGuid>{CA34B508-4944-43ED-AC31-AE159AECD86D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CobaltMetrics</RootNamespace>
-    <AssemblyName>CobaltMetrics</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <RootNamespace>Unity</RootNamespace>
+    <AssemblyName>Unity</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -38,16 +37,19 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="UnityEngine">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Unity\Editor\Data\Managed\UnityEngine.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataTypes\CMetricNative - Copy.cs" />
-    <Compile Include="DataTypes\CMetricNative.cs" />
-    <Compile Include="DataTypes\DataType.cs" />
-    <Compile Include="DataTypes\Generic\GenericList.cs" />
-    <Compile Include="DataTypes\Generic\GenericSingular.cs" />
-    <Compile Include="DataTypes\Generic\IGenericData.cs" />
-    <Compile Include="Metrics.cs" />
+    <Compile Include="DataTypes\CMetricVector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CobaltMetrics\CobaltMetrics.csproj">
+      <Project>{3da71560-2f4b-4227-a7dd-a6f1719225b1}</Project>
+      <Name>CobaltMetrics</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
