@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Xml.Linq;
+using System.Xml;
 
 using System.Net;
 
@@ -12,6 +13,8 @@ namespace CobaltMetrics
 {
     public class Metrics
     {
+        public enum Endpoint {session, data}
+
         //Session Info
         private static Guid guid = Guid.NewGuid();
         private static long startTime;
@@ -68,6 +71,8 @@ namespace CobaltMetrics
             else if(running && !locked)
             {
                 metricData.Add(data);
+
+
             }
         }
 
@@ -145,11 +150,14 @@ namespace CobaltMetrics
             doc.Save(filePath, SaveOptions.None);
         }
 
-        private static bool PostData(string requestXml)
+        private static bool PostRequest(string endPoint, XDocument requestXML)
         {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create("http://api.blackfeatherproductions.com/cobaltMetrics");
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create("http://api.blackfeatherproductions.com/cobaltMetrics/" + endPoint);
+
+            string postXMLString = requestXML.ToString(SaveOptions.DisableFormatting);
+
             byte[] bytes;
-            bytes = System.Text.Encoding.ASCII.GetBytes(requestXml);
+            bytes = System.Text.Encoding.ASCII.GetBytes(postXMLString);
 
             request.ContentType = "text/xml; encoding='utf-8'";
             request.ContentLength = bytes.Length;
@@ -168,6 +176,35 @@ namespace CobaltMetrics
             }
 
             return false;
+        }
+
+        private static XDocument GetRequest(string endPoint, XDocument requestXML)
+        {
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create("http://api.blackfeatherproductions.com/cobaltMetrics/" + endPoint);
+
+            string postXMLString = requestXML.ToString(SaveOptions.DisableFormatting);
+
+            byte[] bytes;
+            bytes = System.Text.Encoding.ASCII.GetBytes(postXMLString);
+
+            request.ContentType = "text/xml; encoding='utf-8'";
+            request.ContentLength = bytes.Length;
+            request.Method = "GET";
+
+            Stream requestStream = request.GetRequestStream();
+            requestStream.Write(bytes, 0, bytes.Length);
+            requestStream.Close();
+
+            HttpWebResponse response;
+            response = (HttpWebResponse)request.GetResponse();
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                XDocument doc = XDocument.Load(XmlReader.Create(response.GetResponseStream()));
+                return doc;
+            }
+
+            return null;
         }
     }
 }
