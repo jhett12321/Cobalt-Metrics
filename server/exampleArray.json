@@ -1,0 +1,12 @@
+{
+    "session_info":{
+        "user_key":"example",
+        "session_id":"00000000000000000000000000000000"
+    },
+    "data":{
+        "key":"someData",
+        "timestamp":"1439102738041",
+        "type":"array",
+        "values": ["someValue1", "someValue2", "someValue3", "someValue4"]
+    }
+}
