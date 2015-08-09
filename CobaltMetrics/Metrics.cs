@@ -1,22 +1,19 @@
 ﻿using System.Collections.Generic;
 using System;
-using System.IO;
 using System.Xml.Linq;
-using System.Xml;
-
-using System.Net;
 
 using CobaltMetrics.DataTypes.Generic;
 using CobaltMetrics.DataTypes;
+using Newtonsoft.Json.Linq;
 
 namespace CobaltMetrics
 {
     public class Metrics
     {
-        public enum Endpoint {session, data}
 
         //Session Info
-        private static Guid guid = Guid.NewGuid();
+        private static string userKey;
+        private static string sessionID = Guid.NewGuid().ToString("N");
         private static long startTime;
 
         //Session Data
@@ -33,7 +30,7 @@ namespace CobaltMetrics
         /// Creates a new metrics session, and begins accepting data.
         /// </summary>
         /// <param name="filePath">The file path for writing the XML data.</param>
-        public static void StartMetrics(String filePath)
+        public static void StartMetrics(string userKey, String filePath)
         {
             if (running)
             {
@@ -45,23 +42,26 @@ namespace CobaltMetrics
                 throw new InvalidOperationException("The metrics system is currently locked, and is writing data. Consider a delay between metric sessions.");
             }
 
-            if (!running && !locked)
+            if (running || locked)
             {
-                Metrics.filePath = filePath;
-
-                TimeSpan t = DateTime.UtcNow - new DateTime(1970, 1, 1);
-                startTime = (long)t.TotalMilliseconds;
-
-                metricData = new List<IGenericData>();
-                running = true;
+                return;
             }
+
+            Metrics.userKey = userKey;
+            Metrics.filePath = filePath;
+
+            TimeSpan t = DateTime.UtcNow - new DateTime(1970, 1, 1);
+            startTime = (long)t.TotalMilliseconds;
+
+            metricData = new List<IGenericData>();
+            running = true;
         }
 
         /// <summary>
         /// Adds data to the current running metrics session. NOTE: This should only be called with your custom implementation of GenericData. Included types do this automatically.
         /// </summary>
-        /// <param name="data">A data object implementing the GenericData interface.</param>
-        public static void AddData(IGenericData data)
+        /// <param name="rawData">A data object implementing the GenericData interface.</param>
+        public static void AddData(IGenericData rawData)
         {
             if(!running || locked)
             {
@@ -70,14 +70,13 @@ namespace CobaltMetrics
 
             else if(running && !locked)
             {
-                metricData.Add(data);
-
-
+                metricData.Add(rawData);
+                PostData(rawData);
             }
         }
 
         /// <summary>
-        /// This should be called after you have finished collecting metrics data. 
+        /// This should be called after you have finished collecting metrics data.
         /// </summary>
         public static void StopMetrics()
         {
@@ -106,8 +105,8 @@ namespace CobaltMetrics
             XElement sessions = doc.Element("sessions");
 
             XElement session = new XElement("session");
-                
-            session.SetAttributeValue("sessionID", guid.ToString());
+
+            session.SetAttributeValue("sessionID", sessionID);
             session.SetAttributeValue("startTime", startTime.ToString());
             session.SetAttributeValue("endTime", endTime.ToString());
             session.SetAttributeValue("sessionTime", (endTime - startTime).ToString());
@@ -150,61 +149,42 @@ namespace CobaltMetrics
             doc.Save(filePath, SaveOptions.None);
         }
 
-        private static bool PostRequest(string endPoint, XDocument requestXML)
+        private static void PostData(IGenericData rawData)
         {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create("http://api.blackfeatherproductions.com/cobaltMetrics/" + endPoint);
+            JObject postData = new JObject();
 
-            string postXMLString = requestXML.ToString(SaveOptions.DisableFormatting);
+            JObject sessionInfo = new JObject();
+            sessionInfo.Add("user_key", userKey);
+            sessionInfo.Add("session_id", sessionID);
 
-            byte[] bytes;
-            bytes = System.Text.Encoding.ASCII.GetBytes(postXMLString);
+            postData.Add("session_info", sessionInfo);
 
-            request.ContentType = "text/xml; encoding='utf-8'";
-            request.ContentLength = bytes.Length;
-            request.Method = "POST";
+            JObject data = new JObject();
+            data.Add("key", rawData.GetDataKey());
+            data.Add("timestamp", rawData.GetTimestamp());
+            data.Add("type", rawData.GetDataType().ToString().ToLower());
 
-            Stream requestStream = request.GetRequestStream();
-            requestStream.Write(bytes, 0, bytes.Length);
-            requestStream.Close();
-
-            HttpWebResponse response;
-            response = (HttpWebResponse)request.GetResponse();
-
-            if (response.StatusCode == HttpStatusCode.OK)
+            switch (rawData.GetDataType())
             {
-                return true;
+                case DataType.SINGLE:
+                {
+                    data.Add("value", rawData.GetDBDataValue());
+                    break;
+                }
+                case DataType.ARRAY:
+                {
+                    JArray values = new JArray();
+                    foreach (string element in rawData.GetDBDataValues())
+                    {
+                        values.Add(element);
+                    }
+                    data.Add("values", values);
+                    break;
+                }
             }
 
-            return false;
-        }
-
-        private static XDocument GetRequest(string endPoint, XDocument requestXML)
-        {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create("http://api.blackfeatherproductions.com/cobaltMetrics/" + endPoint);
-
-            string postXMLString = requestXML.ToString(SaveOptions.DisableFormatting);
-
-            byte[] bytes;
-            bytes = System.Text.Encoding.ASCII.GetBytes(postXMLString);
-
-            request.ContentType = "text/xml; encoding='utf-8'";
-            request.ContentLength = bytes.Length;
-            request.Method = "GET";
-
-            Stream requestStream = request.GetRequestStream();
-            requestStream.Write(bytes, 0, bytes.Length);
-            requestStream.Close();
-
-            HttpWebResponse response;
-            response = (HttpWebResponse)request.GetResponse();
-
-            if (response.StatusCode == HttpStatusCode.OK)
-            {
-                XDocument doc = XDocument.Load(XmlReader.Create(response.GetResponseStream()));
-                return doc;
-            }
-
-            return null;
+            postData.Add("data", data);
+            HttpUtils.PostRequest("/data", postData);
         }
     }
 }
