@@ -1,8 +1,6 @@
-﻿using System;
+using System;
 using System.Net;
 using System.IO;
-using System.Xml;
-using System.Xml.Linq;
 using Newtonsoft.Json.Linq;
 using Formatting = Newtonsoft.Json.Formatting;
 
@@ -12,7 +10,7 @@ namespace CobaltMetrics
     {
         private const string baseURL = "http://api.blackfeatherproductions.com/cobaltMetrics";
 
-        public static bool PostRequest(string uri, JObject data)
+        public static void PostRequest(string uri, JObject data)
         {
             HttpWebRequest request = (HttpWebRequest) WebRequest.Create(baseURL + uri);
 
@@ -40,11 +38,7 @@ namespace CobaltMetrics
 
                 Console.WriteLine("Original JSON Request: ");
                 Console.WriteLine(data.ToString(Formatting.Indented));
-
-                return false;
             }
-
-            return true;
         }
 
         public static JObject GetRequest(string uri)

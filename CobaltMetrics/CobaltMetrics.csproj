@@ -39,11 +39,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataTypes\CMetricNative - Copy.cs" />
@@ -54,6 +50,7 @@
     <Compile Include="DataTypes\Generic\IGenericData.cs" />
     <Compile Include="HttpUtils.cs" />
     <Compile Include="Metrics.cs" />
+    <Compile Include="MetricState.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System;
-using System.Xml.Linq;
+﻿using System;
 
 using CobaltMetrics.DataTypes.Generic;
 using CobaltMetrics.DataTypes;
@@ -10,51 +8,43 @@ namespace CobaltMetrics
 {
     public class Metrics
     {
-
         //Session Info
         private static string userKey;
-        private static string sessionID = Guid.NewGuid().ToString("N");
-        private static long startTime;
-
-        //Session Data
-        private static List<IGenericData> metricData;
+        private static readonly string sessionID = Guid.NewGuid().ToString("N");
+        private static long timestamp;
 
         //Metrics State
-        private static bool running = false;
-        private static bool locked = false;
-
-        //Metrics Setup
-        private static string filePath;
+        private static MetricState currentState = MetricState.STOPPED;
 
         /// <summary>
         /// Creates a new metrics session, and begins accepting data.
         /// </summary>
         /// <param name="filePath">The file path for writing the XML data.</param>
-        public static void StartMetrics(string userKey, String filePath)
+        public static void StartMetrics(string userKey)
         {
-            if (running)
+            if (currentState == MetricState.RUNNING)
             {
                 throw new InvalidOperationException("The metrics system is already running!");
             }
 
-            if (locked)
+            if (currentState == MetricState.LOCKED)
             {
-                throw new InvalidOperationException("The metrics system is currently locked, and is writing data. Consider a delay between metric sessions.");
+                throw new InvalidOperationException("The metrics system is locked, and is currently writing data. Consider a delay between metric sessions.");
             }
 
-            if (running || locked)
+            if (currentState == MetricState.RUNNING || currentState == MetricState.LOCKED)
             {
                 return;
             }
 
+            //Set our run state to running.
+            currentState = MetricState.RUNNING;
+
+            //Set up our auth key and file paths for API queries.
             Metrics.userKey = userKey;
-            Metrics.filePath = filePath;
 
-            TimeSpan t = DateTime.UtcNow - new DateTime(1970, 1, 1);
-            startTime = (long)t.TotalMilliseconds;
-
-            metricData = new List<IGenericData>();
-            running = true;
+            //Initialize our session.
+            PostSessionInfo(true);
         }
 
         /// <summary>
@@ -63,14 +53,13 @@ namespace CobaltMetrics
         /// <param name="rawData">A data object implementing the GenericData interface.</param>
         public static void AddData(IGenericData rawData)
         {
-            if(!running || locked)
+            if (currentState != MetricState.RUNNING)
             {
                 throw new InvalidOperationException("There is no current metric session active/available.");
             }
 
-            else if(running && !locked)
+            else
             {
-                metricData.Add(rawData);
                 PostData(rawData);
             }
         }
@@ -80,73 +69,13 @@ namespace CobaltMetrics
         /// </summary>
         public static void StopMetrics()
         {
-            running = false;
-            locked = true;
+            //Update our states.
+            currentState = MetricState.LOCKED;
 
-            TimeSpan t = DateTime.UtcNow - new DateTime(1970, 1, 1);
-            long endTime = (long)t.TotalMilliseconds;
+            //Post closing session data
+            PostSessionInfo(false);
 
-            XDocument doc;
-
-            try
-            {
-                doc = XDocument.Load(filePath);
-            }
-            catch (Exception e)
-            {
-                doc = new XDocument(new XElement("sessions"));
-            }
-
-            if(doc.Element("sessions") == null)
-            {
-                doc = new XDocument(new XElement("sessions"));
-            }
-
-            XElement sessions = doc.Element("sessions");
-
-            XElement session = new XElement("session");
-
-            session.SetAttributeValue("sessionID", sessionID);
-            session.SetAttributeValue("startTime", startTime.ToString());
-            session.SetAttributeValue("endTime", endTime.ToString());
-            session.SetAttributeValue("sessionTime", (endTime - startTime).ToString());
-
-            foreach(IGenericData data in metricData)
-            {
-                if (data.GetDataKey() != null && data.GetTimestamp() > startTime && (data.GetDBDataValue() != null || data.GetDBDataValues() != null))
-                {
-                    XElement dataElement = new XElement("data");
-                    dataElement.SetAttributeValue("key", data.GetDataKey());
-                    dataElement.SetAttributeValue("timestamp", data.GetTimestamp());
-                    dataElement.SetAttributeValue("type", data.GetDataType().ToString());
-
-                    switch(data.GetDataType())
-                    {
-                        case DataType.SINGLE:
-                        {
-                            XElement valueElement = new XElement("value", data.GetDBDataValue());
-                            dataElement.Add(valueElement);
-
-                            break;
-                        }
-                        case DataType.ARRAY:
-                        {
-                            for (int i = 0; i < data.GetDBDataValues().Count; ++i )
-                            {
-                                XElement valueElement = new XElement("value" + i.ToString(), data.GetDBDataValues()[i]);
-                                dataElement.Add(valueElement);
-                            }
-
-                            break;
-                        }
-                    }
-
-                    session.Add(dataElement);
-                }
-            }
-
-            sessions.Add(session);
-            doc.Save(filePath, SaveOptions.None);
+            currentState = MetricState.STOPPED;
         }
 
         private static void PostData(IGenericData rawData)
@@ -154,12 +83,14 @@ namespace CobaltMetrics
             JObject postData = new JObject();
 
             JObject sessionInfo = new JObject();
+
             sessionInfo.Add("user_key", userKey);
             sessionInfo.Add("session_id", sessionID);
 
             postData.Add("session_info", sessionInfo);
 
             JObject data = new JObject();
+
             data.Add("key", rawData.GetDataKey());
             data.Add("timestamp", rawData.GetTimestamp());
             data.Add("type", rawData.GetDataType().ToString().ToLower());
@@ -174,17 +105,47 @@ namespace CobaltMetrics
                 case DataType.ARRAY:
                 {
                     JArray values = new JArray();
+
                     foreach (string element in rawData.GetDBDataValues())
                     {
                         values.Add(element);
                     }
+
                     data.Add("values", values);
+
                     break;
                 }
             }
 
             postData.Add("data", data);
+
             HttpUtils.PostRequest("/data", postData);
+        }
+
+        private static void PostSessionInfo(bool isStart)
+        {
+            TimeSpan t = DateTime.UtcNow - new DateTime(1970, 1, 1);
+            timestamp = (long)t.TotalMilliseconds;
+
+            JObject postData = new JObject();
+
+            JObject sessionInfo = new JObject();
+
+            sessionInfo.Add("user_key", userKey);
+            sessionInfo.Add("session_id", sessionID);
+
+            if (isStart)
+            {
+                sessionInfo.Add("start_time", timestamp.ToString());
+            }
+            else
+            {
+                sessionInfo.Add("end_time", timestamp.ToString());
+            }
+
+            postData.Add("session_info", sessionInfo);
+
+            HttpUtils.PostRequest("/session", postData);
         }
     }
 }

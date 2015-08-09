@@ -116,7 +116,7 @@ if($method === "POST")
 
 else
 {
-	http_response_code(405);
+	http_response_code(501);
 	exit;
 }
 ?>

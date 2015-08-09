@@ -11,7 +11,6 @@ CREATE TABLE `sessions` (
   `user_key` char(32) NOT NULL,
   `start_time` bigint(20) DEFAULT NULL,
   `end_time` bigint(20) DEFAULT NULL,
-  `session_time` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`user_key`,`id`),
   KEY `start_time_index` (`start_time`) USING BTREE,
   KEY `end_time_index` (`end_time`) USING BTREE,
