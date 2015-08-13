@@ -3,18 +3,48 @@ using System.Net;
 using System.IO;
 using Newtonsoft.Json.Linq;
 using Formatting = Newtonsoft.Json.Formatting;
+using System.Threading;
 
 namespace CobaltMetrics
 {
+    public class HttpRequestData
+    {
+        public delegate void RequestCallback(string code, JObject data);
+
+        public string uri;
+        public JObject data;
+        public RequestCallback callback;
+    };
+
     class HttpUtils
     {
         private const string baseURL = "http://api.blackfeatherproductions.com/cobaltMetrics";
 
-        public static void PostRequest(string uri, JObject data)
+        public static void PostRequest(string uri, JObject data, HttpRequestData.RequestCallback callback)
         {
-            HttpWebRequest request = (HttpWebRequest) WebRequest.Create(baseURL + uri);
+            var requestData = new HttpRequestData();
+            requestData.uri = uri;
+            requestData.data = data;
+            requestData.callback = callback;
 
-            string postString = data.ToString(Formatting.None);
+            System.Threading.ThreadPool.QueueUserWorkItem(HttpUtils.DoPost, requestData);
+        }
+
+        public static void GetRequest(string uri, AsyncCallback callback)
+        {
+            var requestData = new HttpRequestData();
+            requestData.uri = uri;
+            requestData.data = null;
+
+            System.Threading.ThreadPool.QueueUserWorkItem(HttpUtils.DoGet, requestData);
+        }
+
+        private static void DoPost(object requestData)
+        {
+            HttpRequestData reqData = (HttpRequestData)requestData;
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(baseURL + reqData.uri);
+
+            string postString = reqData.data.ToString(Formatting.None);
 
             byte[] bytes = System.Text.Encoding.ASCII.GetBytes(postString);
 
@@ -27,7 +57,7 @@ namespace CobaltMetrics
             requestStream.Write(bytes, 0, bytes.Length);
             requestStream.Close();
 
-            HttpWebResponse response = (HttpWebResponse) request.GetResponse();
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
 
             if (response.StatusCode != HttpStatusCode.OK)
             {
@@ -37,15 +67,17 @@ namespace CobaltMetrics
                 Console.WriteLine("Response Description: " + response.StatusDescription);
 
                 Console.WriteLine("Original JSON Request: ");
-                Console.WriteLine(data.ToString(Formatting.Indented));
+                Console.WriteLine(reqData.data.ToString(Formatting.Indented));
             }
         }
 
-        public static JObject GetRequest(string uri)
+        private static void DoGet(object requestData)
         {
-            HttpWebRequest request = (HttpWebRequest) WebRequest.Create(baseURL + uri);
+            HttpRequestData reqData = (HttpRequestData)requestData;
 
-            HttpWebResponse response = (HttpWebResponse) request.GetResponse();
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(baseURL + reqData.uri);
+
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
 
             if (response.StatusCode != HttpStatusCode.OK)
             {
@@ -53,8 +85,7 @@ namespace CobaltMetrics
                 Console.WriteLine("Response Code: " + response.StatusCode);
                 Console.WriteLine("Response Description: " + response.StatusDescription);
                 Console.WriteLine("Original GET Request: ");
-                Console.WriteLine(baseURL + uri);
-                return null;
+                Console.WriteLine(baseURL + reqData.uri);
             }
 
             Stream responseStream = response.GetResponseStream();
@@ -64,8 +95,8 @@ namespace CobaltMetrics
             string rawData = reader.ReadToEnd();
 
             JObject data = JObject.Parse(rawData);
-
-            return data;
+            
+            reqData.callback(response.StatusCode.ToString(), data);
         }
     }
 }

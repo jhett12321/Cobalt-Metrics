@@ -3,7 +3,6 @@
     public enum MetricState
     {
         RUNNING,
-        STOPPED,
-        LOCKED
+        STOPPED
     };
 }

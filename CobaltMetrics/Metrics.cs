@@ -10,7 +10,7 @@ namespace CobaltMetrics
     {
         //Session Info
         private static string userKey;
-        private static readonly string sessionID = Guid.NewGuid().ToString("N");
+        private static string sessionID = Guid.NewGuid().ToString("N");
         private static long timestamp;
 
         //Metrics State
@@ -24,17 +24,9 @@ namespace CobaltMetrics
         {
             if (currentState == MetricState.RUNNING)
             {
-                throw new InvalidOperationException("The metrics system is already running!");
-            }
-
-            if (currentState == MetricState.LOCKED)
-            {
-                throw new InvalidOperationException("The metrics system is locked, and is currently writing data. Consider a delay between metric sessions.");
-            }
-
-            if (currentState == MetricState.RUNNING || currentState == MetricState.LOCKED)
-            {
-                return;
+                //throw new InvalidOperationException("The metrics system is already running!");
+                Console.WriteLine("CMetrics WARNING: Previous Session was still running. Stopping...");
+                StopMetrics();
             }
 
             //Set our run state to running.
@@ -42,6 +34,9 @@ namespace CobaltMetrics
 
             //Set up our auth key and file paths for API queries.
             Metrics.userKey = userKey;
+
+            //Generate a new Session ID
+            sessionID = Guid.NewGuid().ToString("N");
 
             //Initialize our session.
             PostSessionInfo(true);
@@ -69,9 +64,6 @@ namespace CobaltMetrics
         /// </summary>
         public static void StopMetrics()
         {
-            //Update our states.
-            currentState = MetricState.LOCKED;
-
             //Post closing session data
             PostSessionInfo(false);
 
@@ -119,7 +111,7 @@ namespace CobaltMetrics
 
             postData.Add("data", data);
 
-            HttpUtils.PostRequest("/data", postData);
+            HttpUtils.PostRequest("/data", postData, null);
         }
 
         private static void PostSessionInfo(bool isStart)
@@ -145,7 +137,7 @@ namespace CobaltMetrics
 
             postData.Add("session_info", sessionInfo);
 
-            HttpUtils.PostRequest("/session", postData);
+            HttpUtils.PostRequest("/session", postData, null);
         }
     }
 }

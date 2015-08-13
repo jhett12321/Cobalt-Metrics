@@ -7,8 +7,8 @@
     <ProjectGuid>{CA34B508-4944-43ED-AC31-AE159AECD86D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Unity</RootNamespace>
-    <AssemblyName>Unity</AssemblyName>
+    <RootNamespace>CobaltMetricsUnity</RootNamespace>
+    <AssemblyName>CobaltMetricsUnity</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
