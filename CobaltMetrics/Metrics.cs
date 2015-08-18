@@ -20,7 +20,7 @@ namespace CobaltMetrics
         /// Creates a new metrics session, and begins accepting data.
         /// </summary>
         /// <param name="filePath">The file path for writing the XML data.</param>
-        public static void StartMetrics(string userKey)
+        public static string StartMetrics(string userKey)
         {
             if (currentState == MetricState.RUNNING)
             {
@@ -40,6 +40,8 @@ namespace CobaltMetrics
 
             //Initialize our session.
             PostSessionInfo(true);
+
+            return sessionID;
         }
 
         /// <summary>

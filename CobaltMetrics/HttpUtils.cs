@@ -44,6 +44,8 @@ namespace CobaltMetrics
             HttpRequestData reqData = (HttpRequestData)requestData;
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(baseURL + reqData.uri);
 
+            request.Timeout = 5000;
+
             string postString = reqData.data.ToString(Formatting.None);
 
             byte[] bytes = System.Text.Encoding.ASCII.GetBytes(postString);
@@ -76,6 +78,8 @@ namespace CobaltMetrics
             HttpRequestData reqData = (HttpRequestData)requestData;
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(baseURL + reqData.uri);
+
+            request.Timeout = 5000;
 
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
 
