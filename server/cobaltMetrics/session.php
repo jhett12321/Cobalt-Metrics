@@ -1,4 +1,6 @@
 <?php
+header('Content-Type: application/json');
+
 $method = $_SERVER['REQUEST_METHOD'];
 
 //DEBUG
@@ -15,8 +17,7 @@ if($method === "POST")
 	// $data is null because the json cannot be decoded
 	if($data === null)
 	{
-		http_response_code(400);
-		exit;
+		ErrorResponse(400, 'You have not provided any data, or it is corrupt. Please try again with valid data.');
 	}
 	
 	// Validate all required JSON elements exist.
@@ -24,8 +25,7 @@ if($method === "POST")
 		!isset($data->session_info->session_id) ||
 		(!isset($data->session_info->start_time) && !isset($data->session_info->end_time)))
 	{
-		http_response_code(400);
-		exit;
+		ErrorResponse(400, 'A required post field is missing. Please check your posted data.');
 	}
 	
 	//Create our database connection
@@ -43,8 +43,7 @@ if($method === "POST")
 		//This user doesn't exist, or is currently disabled.
 		if(!$result)
 		{
-			http_response_code(403);
-			exit;
+			ErrorResponse(403, 'The user key provided does not exist, or is currently disabled.');
 		}
 		
 		$postType = 0;
@@ -77,18 +76,27 @@ if($method === "POST")
 	}
 	catch (PDOException $e)
 	{
-		http_response_code(500);
-		exit();
+		ErrorResponse(500, 'Internal DB Exception Occurred.');
 	}        
 	
-	$db = null; //Close DB connection.
-	http_response_code(200);
 	exit;
 }
 
 else
 {
-	http_response_code(501);
+	ErrorResponse(501, 'Unknown Request Method. ' . $_SERVER['REQUEST_METHOD'] . ' Not Implemented.');
+}
+
+function ErrorResponse($errCode, $errMsg)
+{
+	http_response_code($errCode);
+	
+	$returnData = array(
+		'response_code' => $errCode,
+		'message' => $errMsg
+	);
+	
+	print(json_encode($returnData));
 	exit;
 }
 ?>
