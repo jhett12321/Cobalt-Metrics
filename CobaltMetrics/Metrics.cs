@@ -62,12 +62,18 @@ namespace CobaltMetrics
         /// <summary>
         /// This should be called after you have finished collecting metrics data.
         /// </summary>
-        public static void StopMetrics()
+        public static bool StopMetrics()
         {
-            //Post closing session data
-            PostSessionInfo(false);
+            if (currentState == MetricState.RUNNING)
+            {
+                //Post closing session data
+                PostSessionInfo(false);
 
-            currentState = MetricState.STOPPED;
+                currentState = MetricState.STOPPED;
+                return true;
+            }
+
+            return false;
         }
 
         private static void PostData(IGenericData rawData)
