@@ -48,17 +48,15 @@ namespace CobaltMetrics
         /// Adds data to the current running metrics session. NOTE: This should only be called with your custom implementation of GenericData. Included types do this automatically.
         /// </summary>
         /// <param name="rawData">A data object implementing the GenericData interface.</param>
-        public static void AddData(IGenericData rawData)
+        public static bool AddData(IGenericData rawData)
         {
             if (currentState != MetricState.RUNNING)
             {
-                throw new InvalidOperationException("There is no current metric session active/available.");
+                return false;
             }
 
-            else
-            {
-                PostData(rawData);
-            }
+            PostData(rawData);
+            return true;
         }
 
         /// <summary>

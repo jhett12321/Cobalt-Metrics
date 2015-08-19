@@ -163,7 +163,7 @@ else if($method === 'GET')
 		$before = !empty($_GET['before']) ? $_GET['before'] : null;
 		$start = !empty($_GET['start']) ? $_GET['start'] : null;
 		
-		$sql = sprintf('SELECT * FROM `data` WHERE `user_key` = :userKey%s%s%s%s%s ORDER BY `timestamp` DESC;',
+		$sql = sprintf('SELECT * FROM `data` WHERE `user_key` = :userKey%s%s%s%s ORDER BY `timestamp` DESC%s;',
 					   !empty($sessionID) ? ' AND `session_id` = :sessionID' : null,
 					   !empty($dataID) ? ' AND `id` = :dataID' : null,
 					   !empty($after) ? ' AND `timestamp` > :after' : null,

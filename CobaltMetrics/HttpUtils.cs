@@ -63,14 +63,10 @@ namespace CobaltMetrics
 
             if (response.StatusCode != HttpStatusCode.OK)
             {
-                Console.WriteLine("ERROR: posting of data failed.");
-
-                Console.WriteLine("Response Code: " + response.StatusCode);
-                Console.WriteLine("Response Description: " + response.StatusDescription);
-
-                Console.WriteLine("Original JSON Request: ");
-                Console.WriteLine(reqData.data.ToString(Formatting.Indented));
+                File.WriteAllText("metrics_errors.log", response.StatusCode + response.StatusDescription);
             }
+
+            response.Close();
         }
 
         private static void DoGet(object requestData)
