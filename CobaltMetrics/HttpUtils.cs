@@ -18,7 +18,7 @@ namespace CobaltMetrics
 
     class HttpUtils
     {
-        private const string baseURL = "http://api.blackfeatherproductions.com/cobaltMetrics";
+        private const string baseURL = "http://cobaltmetrics.api.blackfeatherproductions.com";
 
         public static void PostRequest(string uri, JObject data, HttpRequestData.RequestCallback callback)
         {
@@ -99,7 +99,7 @@ namespace CobaltMetrics
             string rawData = reader.ReadToEnd();
 
             JObject data = JObject.Parse(rawData);
-            
+
             reqData.callback(response.StatusCode.ToString(), data);
         }
     }
