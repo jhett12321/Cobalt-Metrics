@@ -33,7 +33,7 @@ CREATE TABLE `data` (
   `array_index` int(11) NOT NULL,
   `value` text NOT NULL,
   `timestamp` bigint(20) NOT NULL,
-  PRIMARY KEY (`user_key`, `session_id`,`id`,`timestamp`,`array_index`),
+  PRIMARY KEY (`user_key`,`session_id`,`id`,`timestamp`,`array_index`),
   KEY `session_id_index` (`session_id`) USING BTREE,
   KEY `id_index` (`id`) USING BTREE,
   KEY `timestamp_index` (`timestamp`) USING BTREE,
