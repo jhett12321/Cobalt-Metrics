@@ -142,13 +142,18 @@ else if($method === 'GET')
 		}
 		
 		//Query database based on the query parameters.
-		
+		$queryStart = microtime(true);
 		//Query Limits
-		$end = 1000;
+		$end = 1000; //Default Value
 		
-		if(!empty($_GET['limit']) && $_GET['limit'] < 3000)
+		if(!empty($_GET['limit']) && $_GET['limit'] < 10000)
 		{
-			$end = $_GET['limit'];
+			$end = intval($_GET['limit']);
+		}
+		
+		else if(!empty($_GET['limit']))
+		{
+			$end = 10000;
 		}
 		
 		if(!empty($_GET['start']))
@@ -207,7 +212,8 @@ else if($method === 'GET')
 		//Create the parent JSON element
 		$returnData = array(
 			'data_list' => $results,
-			'returned' => count($results)
+			'returned' => count($results),
+			'query_ms' => round((microtime(true) - $queryStart) * 1000)
 		);
 		
 		print(json_encode($returnData));
