@@ -9,12 +9,14 @@ CREATE TABLE `users` (
 CREATE TABLE `sessions` (
   `id` char(32) NOT NULL,
   `user_key` char(32) NOT NULL,
+  `version` varchar(255) DEFAULT NULL,
   `start_time` bigint(20) DEFAULT NULL,
   `end_time` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`user_key`,`id`),
   KEY `start_time_index` (`start_time`) USING BTREE,
   KEY `end_time_index` (`end_time`) USING BTREE,
   KEY `id_index` (`id`) USING BTREE,
+  KEY `version_index` (`version`) USING BTREE,
   CONSTRAINT `sessions_ibfk_1` FOREIGN KEY (`user_key`) REFERENCES `users` (`key`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -23,7 +25,7 @@ CREATE TABLE `data_types` (
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `name_index` (`name`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 CREATE TABLE `data` (
   `id` varchar(255) NOT NULL,

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using CobaltMetrics.DataTypes.Generic;
 using CobaltMetrics.DataTypes;
@@ -11,16 +11,23 @@ namespace CobaltMetrics
         //Session Info
         private static string userKey;
         private static string sessionID = Guid.NewGuid().ToString("N");
+        private static string version;
         private static long timestamp;
 
         //Metrics State
         private static MetricState currentState = MetricState.STOPPED;
 
+        [Obsolete("This method is obsolete. Call StartMetrics(string userKey, string version) instead.", false)]
+        public static string StartMetrics(string userKey)
+        {
+            return StartMetrics(userKey, "undefined");
+        }
+
         /// <summary>
         /// Creates a new metrics session, and begins accepting data.
         /// </summary>
         /// <param name="filePath">The file path for writing the XML data.</param>
-        public static string StartMetrics(string userKey)
+        public static string StartMetrics(string userKey, string version)
         {
             if (currentState == MetricState.RUNNING)
             {
@@ -34,6 +41,9 @@ namespace CobaltMetrics
 
             //Set up our auth key and file paths for API queries.
             Metrics.userKey = userKey;
+
+            //Set our version
+            Metrics.version = version;
 
             //Generate a new Session ID
             sessionID = Guid.NewGuid().ToString("N");
@@ -131,6 +141,7 @@ namespace CobaltMetrics
 
             sessionInfo.Add("user_key", userKey);
             sessionInfo.Add("session_id", sessionID);
+            sessionInfo.Add("version", version);
 
             if (isStart)
             {

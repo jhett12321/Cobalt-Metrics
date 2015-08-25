@@ -12,7 +12,7 @@ if($method === "POST")
 	$data = json_decode(file_get_contents('php://input'));
 	
 	//DEBUG
-	//$data = json_decode('{"session_info":{"user_key":"example","session_id":"00000000000000000000000000000001","start_time":"1439102738041"}}');
+	//$data = json_decode('{"session_info":{"user_key":"example","session_id":"00000000000000000000000000000001","start_time":"1439102738041","version":"1.5.4588.21600"}}');
 	
 	// $data is null because the json cannot be decoded
 	if($data === null)
@@ -56,7 +56,20 @@ if($method === "POST")
 		//We need to create a new session
 		if($postType == 0)
 		{
-			$query = $db->prepare('INSERT IGNORE INTO `sessions` (`id`, `user_key`, `start_time`) VALUES (:sessionID, :userKey, :startTime)');
+            $version = isset($data->session_info->version) ? $data->session_info->version : null;
+            
+			$query = $db->prepare('INSERT IGNORE INTO `sessions` (`id`, `user_key`, `version`, `start_time`) VALUES (:sessionID, :userKey, :version, :startTime)');
+            
+            if (!empty($version))
+            {
+                $query->bindParam(':version', $version, PDO::PARAM_STR);
+            }
+            
+            else
+            {
+                $query->bindParam(':version', $version, PDO::PARAM_NULL);
+            }
+            
 			$query->bindParam(':sessionID', $data->session_info->session_id, PDO::PARAM_STR);
 			$query->bindParam(':userKey', $data->session_info->user_key, PDO::PARAM_STR);
 			$query->bindParam(':startTime', $data->session_info->start_time, PDO::PARAM_STR);
@@ -139,7 +152,7 @@ else if($method === 'GET')
 		$before = !empty($_GET['before']) ? $_GET['before'] : null;
 		$start = !empty($_GET['start']) ? $_GET['start'] : null;
 		
-		$sql = sprintf('SELECT * FROM `sessions` WHERE `user_key` = :userKey%s%s%s ORDER BY `start_time` DESC%s;',
+		$sql = sprintf('SELECT (`session_id`, `start_time`, `end_time`) FROM `sessions` WHERE `user_key` = :userKey%s%s%s ORDER BY `start_time` DESC%s;',
 					   !empty($sessionID) ? ' AND `session_id` = :sessionID' : null,
 					   !empty($after) ? ' AND `start_time` > :after' : null,
 					   !empty($before) ? ' AND `start_time` < :before' : null,
