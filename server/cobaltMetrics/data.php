@@ -164,15 +164,34 @@ else if($method === 'GET')
 		//Optional Params
 		$sessionID = !empty($_GET['session_id']) ? $_GET['session_id'] : null;
 		$dataID = !empty($_GET['data_id']) ? $_GET['data_id'] : null;
+        $arrayIndex = !empty($_GET['array_index']) ? $_GET['array_index'] : null;
+        $value = !empty($_GET['value']) ? $_GET['value'] : null;
 		$after = !empty($_GET['after']) ? $_GET['after'] : null;
 		$before = !empty($_GET['before']) ? $_GET['before'] : null;
 		$start = !empty($_GET['start']) ? $_GET['start'] : null;
+		$commonKey = !empty($_GET['common_key']) ? $_GET['common_key'] : null;
 		
-		$sql = sprintf('SELECT * FROM `data` WHERE `user_key` = :userKey%s%s%s%s ORDER BY `timestamp` DESC%s;',
+		$sql = null;
+		$innerQuery = null;
+		if(!empty($commonKey))
+		{
+			$innerQuery = sprintf('SELECT `' . $commonKey . '` FROM `data` WHERE `user_key` = :userKey%s%s%s%s%s%s',
+						   !empty($sessionID) ? ' AND `session_id` = :sessionID' : null,
+						   !empty($arrayIndex) ? ' AND `array_index` = :arrayIndex' : null,
+						   !empty($dataID) ? ' AND `id` = :dataID' : null,
+						   !empty($value) ? ' AND `value` = :value' : null,
+						   !empty($after) ? ' AND `timestamp` > :after' : null,
+						   !empty($before) ? ' AND `timestamp` < :before' : null);
+		}
+		
+		$sql = sprintf('SELECT * FROM `data` WHERE (`user_key` = :userKey%s%s%s%s%s%s)%s ORDER BY `timestamp` DESC%s;',
 					   !empty($sessionID) ? ' AND `session_id` = :sessionID' : null,
+                       !empty($arrayIndex) ? ' AND `array_index` = :arrayIndex' : null,
 					   !empty($dataID) ? ' AND `id` = :dataID' : null,
+                       !empty($value) ? ' AND `value` = :value' : null,
 					   !empty($after) ? ' AND `timestamp` > :after' : null,
 					   !empty($before) ? ' AND `timestamp` < :before' : null,
+					   !empty($commonKey) ? ' OR `' . $commonKey . '` IN (' . $innerQuery . ')' : null,
 					   !empty($start) ? ' LIMIT :start, :end' : ' LIMIT :end');
 		
 		$query = $db->prepare($sql);
@@ -187,6 +206,16 @@ else if($method === 'GET')
 		if (!empty($dataID))
 		{
 			$query->bindParam(':dataID', $dataID, PDO::PARAM_STR);
+		}
+        
+		if (!empty($arrayIndex))
+		{
+			$query->bindParam(':arrayIndex', $arrayIndex, PDO::PARAM_STR);
+		}
+        
+		if (!empty($value))
+		{
+			$query->bindParam(':value', $value, PDO::PARAM_STR);
 		}
 		
 		if (!empty($after))
