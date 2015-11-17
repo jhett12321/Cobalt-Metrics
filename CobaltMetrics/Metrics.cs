@@ -123,6 +123,11 @@ namespace CobaltMetrics
 
                     break;
                 }
+                case DataType.INCREMENT:
+                {
+                    data.Add("value", rawData.GetDBIncrementValue());
+                    break;
+                }
             }
 
             postData.Add("data", data);

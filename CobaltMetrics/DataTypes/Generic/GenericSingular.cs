@@ -49,6 +49,11 @@ namespace CobaltMetrics.DataTypes.Generic
             return data;
         }
 
+        public int GetDBIncrementValue()
+        {
+            return 0;
+        }
+
         public DataType GetDataType()
         {
             return dataType;

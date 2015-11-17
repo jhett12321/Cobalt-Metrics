@@ -3,6 +3,7 @@
     public enum DataType
     {
         SINGLE,
-        ARRAY
+        ARRAY,
+        INCREMENT
     }
 }

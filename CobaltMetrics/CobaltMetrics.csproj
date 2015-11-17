@@ -42,9 +42,11 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataTypes\CMetricNativeIncrement.cs" />
     <Compile Include="DataTypes\CMetricNative - Copy.cs" />
     <Compile Include="DataTypes\CMetricNative.cs" />
     <Compile Include="DataTypes\DataType.cs" />
+    <Compile Include="DataTypes\Generic\GenericIncrement.cs" />
     <Compile Include="DataTypes\Generic\GenericList.cs" />
     <Compile Include="DataTypes\Generic\GenericSingular.cs" />
     <Compile Include="DataTypes\Generic\IGenericData.cs" />

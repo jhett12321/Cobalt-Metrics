@@ -8,6 +8,7 @@ namespace CobaltMetrics.DataTypes.Generic
         string GetDataKey();
         string GetDBDataValue();
         List<string> GetDBDataValues();
+        int GetDBIncrementValue();
 
         DataType GetDataType();
 
