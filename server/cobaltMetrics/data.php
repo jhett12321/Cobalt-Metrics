@@ -101,6 +101,20 @@ if($method === 'POST')
 				
 				break;
 			}
+			case 'increment':
+			{
+				$typeID = 3;
+				
+				$query = $db->prepare('INSERT INTO `data_frequency` (`id`, `user_key`, `session_id`, `type_id`, `frequency`) VALUES (:dataID, :userKey, :sessionID, :typeID, :frequency) ON DUPLICATE KEY UPDATE `frequency` = `frequency` + :frequency');
+				$query->bindParam(':dataID', $data->data->key, PDO::PARAM_STR);
+				$query->bindParam(':userKey', $data->session_info->user_key, PDO::PARAM_STR);
+				$query->bindParam(':sessionID', $data->session_info->session_id, PDO::PARAM_STR);
+				$query->bindParam(':typeID', $typeID, PDO::PARAM_INT);
+				$query->bindParam(':frequency', $data->data->value, PDO::PARAM_INT);
+				
+				$query->execute();
+				break;
+			}
 		}
 	}
 	catch (PDOException $e)

@@ -44,3 +44,18 @@ CREATE TABLE `data` (
   CONSTRAINT `data_ibfk_2` FOREIGN KEY (`session_id`) REFERENCES `sessions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `data_ibfk_3` FOREIGN KEY (`type_id`) REFERENCES `data_types` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+data_frequency | CREATE TABLE `data_frequency` (
+  `id` varchar(255) NOT NULL,
+  `user_key` char(32) NOT NULL,
+  `session_id` char(32) NOT NULL,
+  `type_id` int(11) NOT NULL,
+  `frequency` int(11) NOT NULL,
+  PRIMARY KEY (`user_key`,`session_id`,`id`),
+  KEY `session_id_index` (`session_id`) USING BTREE,
+  KEY `id_index` (`id`) USING BTREE,
+  KEY `type_id_index` (`type_id`) USING BTREE,
+  CONSTRAINT `data_frequency_ibfk_1` FOREIGN KEY (`user_key`) REFERENCES `users` (`key`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `data_frequency_ibfk_2` FOREIGN KEY (`session_id`) REFERENCES `sessions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `data_frequency_ibfk_3` FOREIGN KEY (`type_id`) REFERENCES `data_types` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 

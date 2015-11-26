@@ -6,7 +6,7 @@
     "data":{
         "key":"someData",
         "timestamp":"1439102738041",
-        "type":"single",
-        "value": "someValue"
+        "type":"increment",
+        "value": 20
     }
 }
