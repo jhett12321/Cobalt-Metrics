@@ -3,6 +3,8 @@ header('Content-Type: application/json');
 
 $method = $_SERVER['REQUEST_METHOD'];
 
+ErrorResponse(503, 'Maintenance.');
+
 //DEBUG
 //$method = 'POST';
 
