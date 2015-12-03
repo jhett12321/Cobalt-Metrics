@@ -15,7 +15,7 @@ namespace CobaltMetrics.DataTypes
         /// </summary>
         /// <param name="key">A named key representing this byte. Should represent the named variable this byte is assigned to, and should be unique for the whole project.</param>
         /// <param name="value">The byte value for this key.</param>
-        public static void Byte(string key, byte value, bool watch, Nullable<float> watchTime)
+        public static void Byte(string key, byte value)
         {
             new GenericString(key, value.ToString());
         }
