@@ -176,60 +176,34 @@ else if($method === 'GET')
 		}
 		
 		//Optional Params
-		$sessionID = !empty($_GET['session_id']) ? $_GET['session_id'] : null;
 		$dataID = !empty($_GET['data_id']) ? $_GET['data_id'] : null;
-        $arrayIndex = !empty($_GET['array_index']) ? $_GET['array_index'] : null;
-        $value = !empty($_GET['value']) ? $_GET['value'] : null;
+        $minFrequency = !empty($_GET['min_frequency']) ? $_GET['min_frequency'] : null;
+		$maxFrequency = !empty($_GET['max_frequency']) ? $_GET['max_frequency'] : null;
 		$after = !empty($_GET['after']) ? $_GET['after'] : null;
 		$before = !empty($_GET['before']) ? $_GET['before'] : null;
 		$start = !empty($_GET['start']) ? $_GET['start'] : null;
-		$commonKey = !empty($_GET['common_key']) ? $_GET['common_key'] : null;
 		
 		$sql = null;
 		$innerQuery = null;
-		if(!empty($commonKey))
-		{
-			$innerQuery = sprintf('SELECT `' . $commonKey . '` FROM `data` AS rawData INNER JOIN `data_id_hashes` AS dataKeys ON rawData.hash = dataKeys.hash WHERE rawData.user_key = :userKey%s%s%s%s%s%s ',
-						   !empty($sessionID) ? ' AND rawData.session_id = :sessionID' : null,
-						   !empty($arrayIndex) ? ' AND rawData.array_index = :arrayIndex' : null,
-						   !empty($value) ? ' AND rawData.value = :value' : null,
-						   !empty($after) ? ' AND rawData.timestamp > :after' : null,
-						   !empty($before) ? ' AND rawData.timestamp < :before' : null,
-						   !empty($dataID) ? ' AND dataKeys.id = :dataID' : null);
-		}
-		
-		$sql = sprintf('SELECT * FROM `data` AS rawData INNER JOIN `data_id_hashes` AS dataKeys ON rawData.hash = dataKeys.hash WHERE (rawData.user_key = :userKey%s%s%s%s%s%s)%s ORDER BY rawData.timestamp DESC%s',
-					   !empty($sessionID) ? ' AND rawData.session_id = :sessionID' : null,
-                       !empty($arrayIndex) ? ' AND rawData.array_index = :arrayIndex' : null,
-                       !empty($value) ? ' AND rawData.value = :value' : null,
-					   !empty($after) ? ' AND rawData.timestamp > :after' : null,
-					   !empty($before) ? ' AND rawData.timestamp < :before' : null,
+					   
+		$sql = sprintf('SELECT * FROM `data_frequency` AS rawData INNER JOIN `data_id_hashes` AS dataKeys ON rawData.hash = dataKeys.hash WHERE (rawData.user_key = :userKey%s%s) %s',
+					   !empty($minFrequency) && !empty($maxFrequency) ? ' AND `frequency` BETWEEN :minFrequency AND :maxFrequency' : null,
 					   !empty($dataID) ? ' AND dataKeys.id = :dataID' : null,
-					   !empty($commonKey) ? ' OR `' . $commonKey . '` IN (' . $innerQuery . ')' : null,
 					   !empty($start) ? ' LIMIT :start, :end' : ' LIMIT :end');
 		
 		$query = $db->prepare($sql);
 		
 		$query->bindParam(':userKey', $userKey, PDO::PARAM_STR);
-
-		if (!empty($sessionID))
-		{
-			$query->bindParam(':sessionID', $sessionID, PDO::PARAM_STR);
-		}
 		
 		if (!empty($dataID))
 		{
 			$query->bindParam(':dataID', $dataID, PDO::PARAM_STR);
 		}
         
-		if (!empty($arrayIndex))
+		if (!empty($minFrequency) && !empty($maxFrequency))
 		{
-			$query->bindParam(':arrayIndex', $arrayIndex, PDO::PARAM_STR);
-		}
-        
-		if (!empty($value))
-		{
-			$query->bindParam(':value', $value, PDO::PARAM_STR);
+			$query->bindParam(':minFrequency', $minFrequency, PDO::PARAM_INT);
+			$query->bindParam(':maxFrequency', $maxFrequency, PDO::PARAM_INT);
 		}
 		
 		if (!empty($after))
